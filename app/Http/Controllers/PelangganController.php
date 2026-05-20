@@ -8,34 +8,17 @@ use Illuminate\Support\Facades\Hash;
 
 class PelangganController extends Controller
 {
-    // 1. FUNGSI REGISTER TOKO BARU (VERSI WEB)
-    public function register(Request $request)
+    // 1. Mengambil semua data pelanggan (READ via API - Status 200 OK)
+    public function index()
     {
-        $request->validate([
-            'nama_toko' => 'required|string|max:255',
-            'nama_pemilik' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:pelanggans,email',
-            'password' => 'required|string|min:6',
-            'no_hp' => 'required|string',
-            'alamat_lengkap' => 'required|string',
-            'tipe_mitra' => 'required|in:distributor,agen,toko_retail',
-        ]);
-
-        Pelanggan::create([
-            'nama_toko' => $request->nama_toko,
-            'nama_pemilik' => $request->nama_pemilik,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'no_hp' => $request->no_hp,
-            'alamat_lengkap' => $request->alamat_lengkap,
-            'tipe_mitra' => $request->tipe_mitra,
-        ]);
-
-        // Setelah daftar, langsung lempar ke halaman utama dengan pesan sukses
-        return redirect('/')->with('success', 'Registrasi toko B2B berhasil!');
+        $pelanggan = Pelanggan::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $pelanggan
+        ], 200);
     }
 
-    // 2. FUNGSI LOGIN (VERSI WEB / BLADE)
+    // 2. Fungsi Login API (Mengembalikan JSON Token - Status 200 OK)
     public function login(Request $request)
     {
         $request->validate([
@@ -45,22 +28,23 @@ class PelangganController extends Controller
 
         $pelanggan = Pelanggan::where('email', $request->email)->first();
 
-        // Cek akun dan kecocokan password
+        // Validasi jika email atau password salah (Status 401 Unauthorized)
         if (!$pelanggan || !Hash::check($request->password, $pelanggan->password)) {
-            // Jika salah, balikkan ke halaman form dengan pesan error merah
-            return back()->withErrors(['email' => 'Email atau password salah, silakan cek kembali.']);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email atau password salah, silakan cek kembali.'
+            ], 401);
         }
 
-        // SEARAH SAMA RINE: Jika sukses login, langsung lempar ke visual dashboard web
-        return redirect('/dashboard-pelanggan');
-    }
-    // 3. MENAMPILKAN HALAMAN DASHBOARD + DAFTAR PELANGGAN
-    public function dashboardWeb()
-    {
-        // Ambil semua data pelanggan dari database Laragon
-        $semuaPelanggan = Pelanggan::all();
+        // Generate Token Akses (Sanctum)
+        $token = $pelanggan->createToken('auth_token')->plainTextToken;
 
-        // Kirim datanya ke file blade dashboard
-        return view('dashboard-pelanggan', compact('semuaPelanggan'));
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login sukses!',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'data' => $pelanggan
+        ], 200);
     }
 }

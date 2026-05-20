@@ -1,22 +1,18 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PelangganController;
 use Illuminate\Support\Facades\Route;
 
-// 1. Halaman Utama (Tempat Form Login yang kita bikin di welcome.blade.php)
+// 1. Halaman Utama (Tempat Form Login & Tabel Pelanggan via jQuery AJAX)
 Route::get('/', function () {
     return view('welcome');
 });
 
-// 2. RUTE MODUL PELANGGAN (Punya Awin)
-// Memproses data form login saat tombol "Masuk Aplikasi" diklik
-Route::post('/proses-login-web', [PelangganController::class, 'login']);
+// ====================================================================
+// RUTE MODUL PELANGGAN LAMA DI SINI SUDAH DIHAPUS (SUDAH PINDAH KE routes/api.php)
+// ====================================================================
 
-// DIUBAH DI SINI: Sekarang rutenya lewat Controller dulu biar data tabelnya keambil!
-Route::get('/dashboard-pelanggan', [PelangganController::class, 'dashboardWeb']);
-
-// 3. Rute Bawaan Proyek / Auth Default (Jangan diganggu)
+// 3. Rute Bawaan Proyek / Auth Default (Jangan diganggu - Tetap Dipertahankan)
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
