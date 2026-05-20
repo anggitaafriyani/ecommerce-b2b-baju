@@ -72,7 +72,7 @@
     <div class="container">
 
         <span class="navbar-brand fw-bold">
-            🛒 IndieArt Connect
+            🛒 Gydirismi
         </span>
 
         <button class="btn btn-outline-light rounded-pill px-4">
@@ -97,7 +97,7 @@
                 </h1>
 
                 <p class="mb-0 opacity-75">
-                    Kelola transaksi pesanan B2B
+                    Kelola pesanan produk Gydirismi
                 </p>
 
             </div>
