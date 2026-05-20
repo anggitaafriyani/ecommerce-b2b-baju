@@ -4,9 +4,5 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
 Route::apiResource('cart', CartController::class);
 Route::apiResource('orders', OrderController::class);
