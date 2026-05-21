@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PengirimanController;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/pengiriman', function () {
+    return view('pengiriman');
 });
 
 Route::prefix('api')->group(function () {
