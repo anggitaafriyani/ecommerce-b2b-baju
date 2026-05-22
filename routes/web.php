@@ -1,16 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\Api\PengirimanController;
->>>>>>> ee0f506ed85ed752e6031afae8f0ddae8e0bf594
 
 Route::get('/', function () {
     return view('welcome');
 });
-<<<<<<< HEAD
-=======
 
 Route::prefix('api')->group(function () {
 
@@ -23,4 +18,3 @@ Route::prefix('api')->group(function () {
     Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy']);
 
 });
->>>>>>> ee0f506ed85ed752e6031afae8f0ddae8e0bf594
