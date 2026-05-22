@@ -127,6 +127,7 @@
                     <tr>
 
                         <th>ID</th>
+                        <th>Pelanggan</th>
                         <th>Total Harga</th>
                         <th>Status</th>
                         <th>Alamat</th>
@@ -290,6 +291,7 @@ $(document).ready(function () {
                             <tr>
 
                                 <td>#${order.id}</td>
+                                <td>${order.user.name}</td>
 
                                 <td>
                                     Rp ${Number(order.total_price).toLocaleString('id-ID')}

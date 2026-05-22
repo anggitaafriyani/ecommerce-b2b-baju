@@ -10,7 +10,9 @@ class OrderController extends Controller
     // GET /api/orders
     public function index()
     {
-        return response()->json(Order::all());
+        $orders = Order::with('user')->get();
+
+        return response()->json($orders);
     }
 
     // POST /api/orders
@@ -32,7 +34,9 @@ class OrderController extends Controller
     // GET /api/orders/{id}
     public function show(string $id)
     {
-        return response()->json(Order::findOrFail($id));
+        $order = Order::with('user')->findOrFail($id);
+
+        return response()->json($order);
     }
 
     // PUT /api/orders/{id}
