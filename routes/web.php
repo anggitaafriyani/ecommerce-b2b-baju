@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PengirimanController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 });
 
 Route::prefix('api')->group(function () {
@@ -17,4 +17,7 @@ Route::prefix('api')->group(function () {
 
     Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy']);
 
+});
+Route::get('/products', function () {
+    return view('products');
 });
