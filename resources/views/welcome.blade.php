@@ -3,7 +3,9 @@
 @section('title', 'Modul Pembayaran B2B (Estetik Grid & Animated)')
 
 @section('content')
-    <div id="modul-pembayaran">
+<div class="container-fluid py-4">
+
+    <div id="modul-pembayaran" class="d-none">
         <div class="card card-main p-1">
             <div class="card-body p-4 p-md-5">
                 
@@ -35,6 +37,70 @@
                     </table>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <div id="loginSection" class="d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+        <div class="card border-0 shadow-sm" style="width: 100%; max-width: 400px; border-radius: 16px;">
+            <div class="card-body p-4 m-2">
+                <h3 class="text-center fw-bold text-navy mb-1">IndieArt Connect</h3>
+                <p class="text-center text-muted small mb-4">Grosir Baju B2B — Login Toko Mitra</p>
+                
+                <div id="loginError" class="alert alert-danger small py-2 d-none"></div>
+
+                <form id="formLoginView">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Alamat Email Toko</label>
+                        <input type="email" id="email" class="form-control py-2" value="makmurbaju@grosir.com" required style="border-radius: 8px;">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold text-secondary">Password</label>
+                        <input type="password" id="password" class="form-control py-2" value="password123" required style="border-radius: 8px;">
+                    </div>
+                    <button type="submit" class="btn btn-dark bg-navy w-100 fw-semibold py-2" style="border-radius: 8px;">Masuk Aplikasi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardSection" class="d-none">
+        <nav class="navbar navbar-dark bg-navy shadow-sm py-3 rounded-3 mb-4">
+            <div class="container">
+                <span class="navbar-brand fw-bold d-flex align-items-center mb-0 h1 fs-5">
+                    <span class="me-2">🛒</span> Toko Baju — Modul Pelanggan
+                </span>
+                <div>
+                    <button id="btnBukaPembayaran" class="btn btn-sm btn-outline-light rounded-pill px-3 me-2">Buka Modul Pembayaran</button>
+                    <button id="btnLogOut" class="btn btn-sm btn-outline-light rounded-pill px-3">Log Out</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container my-4 p-0">
+            <div class="mb-4">
+                <h3 class="fw-bold text-navy mb-1">Data Pelanggan</h3>
+                <p class="text-muted small">Halaman khusus untuk mengelola data toko grosir baju yang terdaftar di sistem (AJAX Murni).</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive p-3">
+                    <table class="table table-hover align-middle mb-0" id="tabelPelanggan">
+                        <thead class="table-light text-secondary small text-uppercase">
+                            <tr>
+                                <th class="ps-3">ID Pelanggan</th>
+                                <th>Nama Toko</th>
+                                <th>Nama Pemilik</th>
+                                <th>Email Aktif</th>
+                                <th>No. Handphone</th>
+                                <th>Tipe Kemitraan</th>
+                                <th class="pe-3">Alamat Toko</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -123,204 +189,230 @@
             </div>
         </div>
     </div>
+
+</div>
 @endsection
 
 @push('scripts')
-    <script>
-        $(document).ready(function() {
-            loadDataPembayaran(); 
+<script>
+    $(document).ready(function() {
+        // Panggil fungsi awal miche
+        loadDataPembayaran(); 
+        
+        // Toggle input jumlah dibayar berdasarkan metode (Miche)
+        $('#metode_pembayaran').change(function() {
+            if ($(this).val() === 'transfer_bank') {
+                $('#wadah_jumlah_dibayar').slideUp();
+            } else {
+                $('#wadah_jumlah_dibayar').slideDown();
+                $('#jumlah_dibayar').val('');
+            }
+        });
+
+        // Event Delegation untuk tombol Edit (Miche)
+        $('#tabelPembayaran').on('click', '.btn-edit', function() {
+            let id = $(this).data('id');
+            let dibayar = $(this).data('dibayar');
+            let status = $(this).data('status');
             
-            // Toggle input jumlah dibayar berdasarkan metode
-            $('#metode_pembayaran').change(function() {
-                if ($(this).val() === 'transfer_bank') {
-                    $('#wadah_jumlah_dibayar').slideUp();
-                } else {
-                    $('#wadah_jumlah_dibayar').slideDown();
-                    $('#jumlah_dibayar').val('');
+            $('#edit_id').val(id);
+            $('#edit_jumlah_dibayar').val(dibayar);
+            $('#edit_status_pembayaran').val(status);
+            $('#edit_bukti_pembayaran').val(''); 
+            $('#modalEditTagihan').modal('show');
+        });
+
+        // Event Delegation untuk tombol Delete (Miche)
+        $('#tabelPembayaran').on('click', '.btn-delete', function() {
+            let id = $(this).data('id');
+            Swal.fire({
+                title: 'Apakah kamu yakin?',
+                text: "Data tagihan ini akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0f172a',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/api/pembayaran/' + id,
+                        type: 'DELETE',
+                        success: function(response) {
+                            loadDataPembayaran(); 
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
                 }
-            });
-
-            // Event Delegation untuk tombol Edit
-            $('#tabelPembayaran').on('click', '.btn-edit', function() {
-                let id = $(this).data('id');
-                let dibayar = $(this).data('dibayar');
-                let status = $(this).data('status');
-                
-                $('#edit_id').val(id);
-                $('#edit_jumlah_dibayar').val(dibayar);
-                $('#edit_status_pembayaran').val(status);
-                $('#edit_bukti_pembayaran').val(''); 
-                $('#modalEditTagihan').modal('show');
-            });
-
-            // Event Delegation untuk tombol Delete menggunakan SweetAlert2
-            $('#tabelPembayaran').on('click', '.btn-delete', function() {
-                let id = $(this).data('id');
-                Swal.fire({
-                    title: 'Apakah kamu yakin?',
-                    text: "Data tagihan ini akan dihapus secara permanen!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#0f172a',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '/api/pembayaran/' + id,
-                            type: 'DELETE',
-                            success: function(response) {
-                                loadDataPembayaran(); 
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Terhapus!',
-                                    text: response.message,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            },
-                            error: function() {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal menghapus data.',
-                                });
-                            }
-                        });
-                    }
-                });
             });
         });
 
-        function loadDataPembayaran() {
+        // ==========================================
+        // LOGIKA AJAX JQUERY MODUL PELANGGAN (AWIN)
+        // ==========================================
+        $('#formLoginView').submit(function(e) {
+            e.preventDefault();
+            $('#loginError').addClass('d-none');
             $.ajax({
-                url: '/api/pembayaran',
+                url: '/api/pelanggan/login',
+                type: 'POST',
+                data: { email: $('#email').val(), password: $('#password').val() },
+                success: function(response) {
+                    alert(response.message);
+                    $('#loginSection').addClass('d-none');
+                    $('#dashboardSection').removeClass('d-none');
+                    loadDataPelanggan();
+                },
+                error: function(err) {
+                    $('#loginError').removeClass('d-none').text(err.responseJSON.message);
+                }
+            });
+        });
+
+        function loadDataPelanggan() {
+            $.ajax({
+                url: '/api/pelanggan',
                 type: 'GET',
                 success: function(response) {
                     let rows = '';
-                    if (response.data.length === 0) {
-                        rows = `<tr><td colspan="7" class="text-center py-5 border-right-0"><div class="text-muted"><i class="bi bi-inbox fs-2 d-block mb-3"></i><span class="fw-medium">Belum ada data pembayaran terekam</span></div></td></tr>`;
-                    } else {
-                        $.each(response.data, function(index, item) {
-                            
-                            let badgeStyle = 'background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
-                            if(item.status_pembayaran === 'Lunas') badgeStyle = 'background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; 
-                            else if(item.status_pembayaran === 'Gagal') badgeStyle = 'background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;'; 
-
-                            let total = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.total_tagihan);
-                            let dibayar = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.jumlah_dibayar);
-                            
-                            let resiLink = '<span class="text-muted"><i class="bi bi-dash"></i></span>';
-                            if(item.bukti_pembayaran) {
-                                resiLink = `<a href="/storage/${item.bukti_pembayaran}" target="_blank" class="btn-resi-view"><i class="bi bi-image me-1"></i>Lihat</a>`;
-                            }
-
-                            // Menyematkan data id, dibayar, dan status ke dalam atribut tombol
-                            rows += `
-                                <tr>
-                                    <td class="fw-bold ps-4" style="color: var(--navy-main); font-family: font-monospace;">${item.no_invoice}</td>
-                                    <td class="fw-semibold text-dark">${total}</td>
-                                    <td><span class="badge text-secondary bg-light border text-capitalize fw-medium px-3 py-2" style="border-radius: 6px;">${item.metode_pembayaran.replace('_', ' ')}</span></td>
-                                    <td class="fw-semibold" style="color: #334155;">${dibayar}</td>
-                                    <td class="text-center"><span class="badge-status" style="${badgeStyle}">${item.status_pembayaran}</span></td>
-                                    <td class="text-center">${resiLink}</td>
-                                    <td class="pe-4 text-center Kolom-Aksi">
-                                        <button class="btn-action-circle btn-edit me-1" title="Edit Data" data-id="${item.id}" data-dibayar="${item.jumlah_dibayar}" data-status="${item.status_pembayaran}">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn-action-circle btn-delete" title="Hapus Data" data-id="${item.id}">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
-                                    </td>
-                                </tr>`;
-                        });
-                    }
-                    $('#tabelPembayaran tbody').html(rows);
+                    $.each(response.data, function(index, p) {
+                        let badgeMitra = p.tipe_mitra === 'distributor' ? '<span class="badge bg-danger px-3 py-1.5">Distributor</span>' : 
+                                         (p.tipe_mitra === 'agen' ? '<span class="badge bg-warning text-dark px-3 py-1.5">Agen</span>' : 
+                                         '<span class="badge bg-primary px-3 py-1.5">Toko Retail</span>');
+                        rows += `
+                            <tr class="border-bottom border-light">
+                                <td class="fw-bold text-muted ps-3">#00${p.id}</td>
+                                <td class="fw-bold text-navy">${p.nama_toko}</td>
+                                <td class="fw-medium text-dark">${p.nama_pemilik}</td>
+                                <td class="text-muted small">${p.email}</td>
+                                <td><span class="badge bg-light text-secondary border px-2 py-1.5">${p.no_hp}</span></td>
+                                <td>${badgeMitra}</td>
+                                <td class="text-muted small pe-3">${p.alamat_lengkap}</td>
+                            </tr>`;
+                    });
+                    $('#tabelPelanggan tbody').html(rows);
                 }
             });
         }
 
-        function simpanTagihan() {
-            let tagihan = $('#total_tagihan').val();
-            let metode = $('#metode_pembayaran').val();
-            let dibayar = $('#jumlah_dibayar').val();
-            if (metode === 'transfer_bank') dibayar = tagihan;
+        // Navigasi Tombol Interaktif Kelompok
+        $('#btnBukaPembayaran').click(function() {
+            $('#dashboardSection').addClass('d-none');
+            $('#modul-pembayaran').removeClass('d-none');
+        });
 
-            let formData = new FormData();
-            formData.append('total_tagihan', tagihan);
-            formData.append('metode_pembayaran', metode);
-            formData.append('jumlah_dibayar', dibayar);
-            
-            if ($('#bukti_pembayaran')[0].files[0]) {
-                formData.append('bukti_pembayaran', $('#bukti_pembayaran')[0].files[0]);
+        $('#btnLogOut').click(function() {
+            $('#dashboardSection').addClass('d-none');
+            $('#modul-pembayaran').addClass('d-none');
+            $('#loginSection').removeClass('d-flex d-none');
+            $('#formLoginView')[0].reset();
+        });
+    });
+
+    // Fungsi luar miche tetap aman
+    function loadDataPembayaran() {
+        $.ajax({
+            url: '/api/pembayaran',
+            type: 'GET',
+            success: function(response) {
+                let rows = '';
+                if (response.data.length === 0) {
+                    rows = `<tr><td colspan="7" class="text-center py-5 border-right-0"><div class="text-muted"><i class="bi bi-inbox fs-2 d-block mb-3"></i><span class="fw-medium">Belum ada data pembayaran terekam</span></div></td></tr>`;
+                } else {
+                    $.each(response.data, function(index, item) {
+                        let badgeStyle = 'background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+                        if(item.status_pembayaran === 'Lunas') badgeStyle = 'background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; 
+                        else if(item.status_pembayaran === 'Gagal') badgeStyle = 'background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;'; 
+
+                        let total = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.total_tagihan);
+                        let dibayar = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.jumlah_dibayar);
+                        
+                        let resiLink = '<span class="text-muted"><i class="bi bi-dash"></i></span>';
+                        if(item.bukti_pembayaran) {
+                            resiLink = `<a href="/storage/${item.bukti_pembayaran}" target="_blank" class="btn-resi-view"><i class="bi bi-image me-1"></i>Lihat</a>`;
+                        }
+
+                        rows += `
+                            <tr>
+                                <td class="fw-bold ps-4" style="color: var(--navy-main); font-family: font-monospace;">${item.no_invoice}</td>
+                                <td class="fw-semibold text-dark">${total}</td>
+                                <td><span class="badge text-secondary bg-light border text-capitalize fw-medium px-3 py-2" style="border-radius: 6px;">${item.metode_pembayaran.replace('_', ' ')}</span></td>
+                                <td class="fw-semibold" style="color: #334155;">${dibayar}</td>
+                                <td class="text-center"><span class="badge-status" style="${badgeStyle}">${item.status_pembayaran}</span></td>
+                                <td class="text-center">${resiLink}</td>
+                                <td class="pe-4 text-center Kolom-Aksi">
+                                    <button class="btn-action-circle btn-edit me-1" title="Edit Data" data-id="${item.id}" data-dibayar="${item.jumlah_dibayar}" data-status="${item.status_pembayaran}"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn-action-circle btn-delete" title="Hapus Data" data-id="${item.id}"><i class="bi bi-trash3"></i></button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+                $('#tabelPembayaran tbody').html(rows);
             }
+        });
+    }
 
-            $.ajax({
-                url: '/api/pembayaran',
-                type: 'POST',
-                data: formData,
-                contentType: false, 
-                processData: false, 
-                success: function(response) {
-                    $('#modalTambahTagihan').modal('hide');
-                    $('#formTagihan')[0].reset();
-                    $('#wadah_jumlah_dibayar').hide();
-                    loadDataPembayaran();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Gagal menyimpan data.',
-                    });
-                }
-            });
+    function simpanTagihan() {
+        let tagihan = $('#total_tagihan').val();
+        let metode = $('#metode_pembayaran').val();
+        let dibayar = $('#jumlah_dibayar').val();
+        if (metode === 'transfer_bank') dibayar = tagihan;
+
+        let formData = new FormData();
+        formData.append('total_tagihan', tagihan);
+        formData.append('metode_pembayaran', metode);
+        formData.append('jumlah_dibayar', dibayar);
+        
+        if ($('#bukti_pembayaran')[0].files[0]) {
+            formData.append('bukti_pembayaran', $('#bukti_pembayaran')[0].files[0]);
         }
 
-        function updateTagihan() {
-            let id = $('#edit_id').val();
-            let formData = new FormData();
-            formData.append('jumlah_dibayar', $('#edit_jumlah_dibayar').val());
-            formData.append('status_pembayaran', $('#edit_status_pembayaran').val());
-            formData.append('_method', 'PUT'); 
-
-            if ($('#edit_bukti_pembayaran')[0].files[0]) {
-                formData.append('bukti_pembayaran', $('#edit_bukti_pembayaran')[0].files[0]);
+        $.ajax({
+            url: '/api/pembayaran',
+            type: 'POST',
+            data: formData,
+            contentType: false, 
+            processData: false, 
+            success: function(response) {
+                $('#modalTambahTagihan').modal('hide');
+                $('#formTagihan')[0].reset();
+                $('#wadah_jumlah_dibayar').hide();
+                loadDataPembayaran();
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, timer: 2000, showConfirmButton: false });
             }
+        });
+    }
 
-            $.ajax({
-                url: '/api/pembayaran/' + id,
-                type: 'POST', 
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    $('#modalEditTagihan').modal('hide');
-                    loadDataPembayaran();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Update Berhasil!',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Gagal mengupdate data.',
-                    });
-                }
-            });
+    function updateTagihan() {
+        let id = $('#edit_id').val();
+        let formData = new FormData();
+        formData.append('jumlah_dibayar', $('#edit_jumlah_dibayar').val());
+        formData.append('status_pembayaran', $('#edit_status_pembayaran').val());
+        formData.append('_method', 'PUT'); 
+
+        if ($('#edit_bukti_pembayaran')[0].files[0]) {
+            formData.append('bukti_pembayaran', $('#edit_bukti_pembayaran')[0].files[0]);
         }
-    </script>
+
+        $.ajax({
+            url: '/api/pembayaran/' + id,
+            type: 'POST', 
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                $('#modalEditTagihan').modal('hide');
+                loadDataPembayaran();
+                Swal.fire({ icon: 'success', title: 'Update Berhasil!', text: response.message, timer: 2000, showConfirmButton: false });
+            }
+        });
+    }
+</script>
 @endpush
