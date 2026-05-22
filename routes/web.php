@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PengirimanController;
+use App\Http\Controllers\CartController;
+// use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
     return view('home');
@@ -21,3 +23,14 @@ Route::prefix('api')->group(function () {
 Route::get('/products', function () {
     return view('products');
 });
+
+Route::get('/orders', function () {
+    return view('orders.index');
+});
+
+Route::get('/cart', function () {
+    return view('cart.index');
+});
+
+Route::resource('cart', CartController::class);
+

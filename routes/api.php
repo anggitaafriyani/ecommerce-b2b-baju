@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\Api\PengirimanController;
+use App\Http\Controllers\OrderController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,3 +27,9 @@ Route::get('/pengiriman', [PengirimanController::class, 'index']);
 Route::post('/pengiriman', [PengirimanController::class, 'store']);
 Route::put('/pengiriman/{id}', [PengirimanController::class, 'update']);
 Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy']);
+
+
+// use App\Http\Controllers\CartController;
+
+Route::apiResource('orders', OrderController::class);
+// Route::apiResource('cart', CartController::class);
